@@ -4,7 +4,7 @@ import { EntityManager } from 'typeorm';
 import * as request from 'supertest';
 import * as jwt from 'jsonwebtoken';
 
-import { AppModule } from '../src/app.module';
+import { AppModule } from '../src/app/app.module';
 import { AuthService } from '../src/auth/auth.service';
 
 describe('AuthController (e2e)', () => {

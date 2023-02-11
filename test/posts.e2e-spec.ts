@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import * as jwt from 'jsonwebtoken';
 
-import { AppModule } from './../src/app.module';
+import { AppModule } from './../src/app/app.module';
 
 describe('PostsController (e2e)', () => {
   let app: INestApplication;
