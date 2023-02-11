@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import * as jwt from 'jsonwebtoken';
+
 import { AppModule } from './../src/app.module';
 
 describe('PostsController (e2e)', () => {
@@ -16,8 +18,12 @@ describe('PostsController (e2e)', () => {
   });
 
   it('returns an error message if the title is missing', () => {
+    const jwtToken = jwt.sign({}, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
     return request(app.getHttpServer())
       .post('/posts')
+      .set('Authorization', `Bearer ${jwtToken}`)
       .send({ text: 'My post text' })
       .expect(400)
       .expect({
@@ -28,8 +34,12 @@ describe('PostsController (e2e)', () => {
   });
 
   it('returns an error message if the text is missing', () => {
+    const jwtToken = jwt.sign({}, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
     return request(app.getHttpServer())
       .post('/posts')
+      .set('Authorization', `Bearer ${jwtToken}`)
       .send({ title: 'My post title' })
       .expect(400)
       .expect({
@@ -37,5 +47,12 @@ describe('PostsController (e2e)', () => {
         message: 'Text is required',
         error: 'Bad Request',
       });
+  });
+
+  it('returns a forbidden error if the user does not provide a valid JWT', () => {
+    return request(app.getHttpServer())
+      .post('/posts')
+      .send({ title: 'My post title', text: 'My post text' })
+      .expect(401);
   });
 });
