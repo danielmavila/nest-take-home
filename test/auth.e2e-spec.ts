@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { EntityManager } from 'typeorm';
 import * as request from 'supertest';
 import * as jwt from 'jsonwebtoken';
 
@@ -7,24 +8,23 @@ import { AppModule } from '../src/app.module';
 import { AuthService } from '../src/auth/auth.service';
 
 describe('AuthController (e2e)', () => {
-  let app: INestApplication;
-  let authService: AuthService;
-
-  beforeEach(async () => {
-    authService = new AuthService();
-
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-    .overrideProvider(AuthService)
-    .useValue(authService)
-    .compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
   describe('/auth/register (POST)', () => {
+    let app: INestApplication;
+    let entityManager: EntityManager;
+    let authService: AuthService;
+
+    beforeEach(async () => {
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
+
+      app = moduleFixture.createNestApplication();
+      entityManager = app.get<EntityManager>(EntityManager);
+      await entityManager.query(`TRUNCATE TABLE user`);
+      authService = app.get<AuthService>(AuthService);
+      await app.init();
+    });
+
     it('should return a JWT token with valid request data', () => {
       const registerDto = {
         email: 'test@example.com',
@@ -52,18 +52,22 @@ describe('AuthController (e2e)', () => {
     it('should return an error if the username is not unique', () => {
       const registerDto = {
         email: 'test@example.com',
-        username: 'testuser',
+        username: 'testuser1',
         password: 'password',
       };
 
-      authService.register(registerDto);
+      authService.register({
+        email: 'test1@example.com',
+        username: 'testuser1',
+        password: 'password',
+      });
 
       return request(app.getHttpServer())
         .post('/auth/register')
         .send(registerDto)
         .expect(400);
     });
-    
+
     it('should return an error if the email is not unique', () => {
       const registerDto = {
         email: 'test@example.com',
@@ -71,7 +75,11 @@ describe('AuthController (e2e)', () => {
         password: 'password',
       };
 
-      authService.register(registerDto);
+      authService.register({
+        email: 'test@example.com',
+        username: 'testuser1',
+        password: 'password',
+      });
 
       return request(app.getHttpServer())
         .post('/auth/register')
@@ -108,6 +116,7 @@ describe('AuthController (e2e)', () => {
     });
 
     afterEach(async () => {
+      await entityManager.query(`TRUNCATE TABLE user`);
       await app.close();
     });
   });
