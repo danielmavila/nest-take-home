@@ -4,14 +4,21 @@ import * as request from 'supertest';
 import * as jwt from 'jsonwebtoken';
 
 import { AppModule } from '../src/app.module';
+import { AuthService } from '../src/auth/auth.service';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
+  let authService: AuthService;
 
   beforeEach(async () => {
+    authService = new AuthService();
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+    .overrideProvider(AuthService)
+    .useValue(authService)
+    .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -40,6 +47,36 @@ describe('AuthController (e2e)', () => {
             },
           );
         });
+    });
+
+    it('should return an error if the username is not unique', () => {
+      const registerDto = {
+        email: 'test@example.com',
+        username: 'testuser',
+        password: 'password',
+      };
+
+      authService.register(registerDto);
+
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send(registerDto)
+        .expect(400);
+    });
+    
+    it('should return an error if the email is not unique', () => {
+      const registerDto = {
+        email: 'test@example.com',
+        username: 'testuser',
+        password: 'password',
+      };
+
+      authService.register(registerDto);
+
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send(registerDto)
+        .expect(400);
     });
 
     it('should return 400 Bad Request when a username is not provided', () => {
