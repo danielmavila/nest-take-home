@@ -17,55 +17,61 @@ describe('AuthController (e2e)', () => {
     await app.init();
   });
 
-  it('/auth/register (POST)', () => {
-    const registerDto = {
-      email: 'test@example.com',
-      username: 'testuser',
-      password: 'password',
-    };
+  describe('/auth/register (POST)', () => {
+    it('should return a JWT token with valid request data', () => {
+      const registerDto = {
+        email: 'test@example.com',
+        username: 'testuser',
+        password: 'password',
+      };
 
-    return request(app.getHttpServer())
-      .post('/auth/register')
-      .send(registerDto)
-      .expect(201)
-      .expect((res) => {
-        expect(res.body.accessToken).toBeDefined();
-        jwt.verify(res.body.accessToken, process.env.JWT_SECRET, (err, decoded) => {
-          expect(err).toBeNull();
-          expect(decoded.username).toEqual(registerDto.username);
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send(registerDto)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.accessToken).toBeDefined();
+          jwt.verify(
+            res.body.accessToken,
+            process.env.JWT_SECRET,
+            (err, decoded) => {
+              expect(err).toBeNull();
+              expect(decoded.username).toEqual(registerDto.username);
+            },
+          );
         });
-      });
-  });
+    });
 
-  it('/auth/register (POST) with missing username should return 400 Bad Request', () => {
-    return request(app.getHttpServer())
-      .post('/auth/register')
-      .send({ email: 'test@example.com', password: 'password' })
-      .expect(400);
-  });
-  
-  it('/auth/register (POST) with missing email should return 400 Bad Request', () => {
-    return request(app.getHttpServer())
-      .post('/auth/register')
-      .send({ username: 'test', password: 'password' })
-      .expect(400);
-  });
-  
-  it('/auth/register (POST) with missing password should return 400 Bad Request', () => {
-    return request(app.getHttpServer())
-      .post('/auth/register')
-      .send({ username: 'test', email: 'test@example.com' })
-      .expect(400);
-  });
-  
-  it('/auth/register (POST) with password less than 8 characters should return 400 Bad Request', () => {
-    return request(app.getHttpServer())
-      .post('/auth/register')
-      .send({ username: 'test', email: 'test@example.com', password: 'pass' })
-      .expect(400);
-  });
+    it('should return 400 Bad Request when a username is not provided', () => {
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ email: 'test@example.com', password: 'password' })
+        .expect(400);
+    });
 
-  afterEach(async () => {
-    await app.close();
+    it('should return 400 Bad Request when an email is not provided', () => {
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ username: 'test', password: 'password' })
+        .expect(400);
+    });
+
+    it('should return 400 Bad Request when a password is not provided', () => {
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ username: 'test', email: 'test@example.com' })
+        .expect(400);
+    });
+
+    it('should return 400 Bad Request if the password provided is less than 8 characters', () => {
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ username: 'test', email: 'test@example.com', password: 'pass' })
+        .expect(400);
+    });
+
+    afterEach(async () => {
+      await app.close();
+    });
   });
 });

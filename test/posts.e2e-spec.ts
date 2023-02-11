@@ -17,32 +17,34 @@ describe('PostsController (e2e)', () => {
     await app.init();
   });
 
-  it('returns an error message if the title is missing', () => {
-    const jwtToken = jwt.sign({}, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+  describe('/posts (POST)', () => {
+    it('should return an error message if the title is missing', () => {
+      const jwtToken = jwt.sign({}, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+      return request(app.getHttpServer())
+        .post('/posts')
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .send({ text: 'My post text' })
+        .expect(400);
     });
-    return request(app.getHttpServer())
-      .post('/posts')
-      .set('Authorization', `Bearer ${jwtToken}`)
-      .send({ text: 'My post text' })
-      .expect(400);
-  });
 
-  it('returns an error message if the text is missing', () => {
-    const jwtToken = jwt.sign({}, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+    it('should return an error message if the text is missing', () => {
+      const jwtToken = jwt.sign({}, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+      return request(app.getHttpServer())
+        .post('/posts')
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .send({ title: 'My post title' })
+        .expect(400);
     });
-    return request(app.getHttpServer())
-      .post('/posts')
-      .set('Authorization', `Bearer ${jwtToken}`)
-      .send({ title: 'My post title' })
-      .expect(400);
-  });
 
-  it('returns a forbidden error if the user does not provide a valid JWT', () => {
-    return request(app.getHttpServer())
-      .post('/posts')
-      .send({ title: 'My post title', text: 'My post text' })
-      .expect(401);
+    it('should return a forbidden error if the user does not provide a valid JWT', () => {
+      return request(app.getHttpServer())
+        .post('/posts')
+        .send({ title: 'My post title', text: 'My post text' })
+        .expect(401);
+    });
   });
 });

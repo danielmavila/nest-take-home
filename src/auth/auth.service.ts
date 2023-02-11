@@ -8,8 +8,6 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const { username, password } = registerDto;
 
-    console.log(username, password);
-
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
 
