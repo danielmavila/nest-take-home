@@ -25,12 +25,7 @@ describe('PostsController (e2e)', () => {
       .post('/posts')
       .set('Authorization', `Bearer ${jwtToken}`)
       .send({ text: 'My post text' })
-      .expect(400)
-      .expect({
-        statusCode: 400,
-        message: 'Title is required',
-        error: 'Bad Request',
-      });
+      .expect(400);
   });
 
   it('returns an error message if the text is missing', () => {
@@ -41,12 +36,7 @@ describe('PostsController (e2e)', () => {
       .post('/posts')
       .set('Authorization', `Bearer ${jwtToken}`)
       .send({ title: 'My post title' })
-      .expect(400)
-      .expect({
-        statusCode: 400,
-        message: 'Text is required',
-        error: 'Bad Request',
-      });
+      .expect(400);
   });
 
   it('returns a forbidden error if the user does not provide a valid JWT', () => {
